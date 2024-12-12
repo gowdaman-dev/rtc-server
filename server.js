@@ -1,4 +1,10 @@
-const io = require("socket.io")(5000, {
+const express = require("express");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+
+const app = express(); // Initialize Express
+const server = createServer(app); // Create HTTP server
+const io = new Server(server, {
   cors: {
     origin: "*",
   },
@@ -17,7 +23,7 @@ io.on("connection", (socket) => {
   socket.on("offer", ({ offer, target, sender }) => {
     const targetSocketId = userSocketMap[target];
     console.log("Sending offer to:", target);
-    
+
     if (targetSocketId) {
       io.to(targetSocketId).emit("offer", { offer, sender });
     } else {
@@ -43,4 +49,17 @@ io.on("connection", (socket) => {
       }
     }
   });
+});
+
+// Serve a test route to confirm the server is running
+app.get("/", (req, res) => {
+  res.send("WebSocket server is running.");
+});
+
+// Use dynamic port for deployment
+const PORT = process.env.PORT || 5000;
+
+// Start the server
+server.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
 });
